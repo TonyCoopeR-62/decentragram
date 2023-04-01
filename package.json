@@ -33,7 +33,10 @@
     "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": "react-app",
+    "plugins": [
+      "@typescript-eslint"
+    ]
   },
   "browserslist": [
     ">0.2%",
@@ -42,6 +45,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "gh-pages": "^2.2.0"
+    "gh-pages": "^2.2.0",
+    "typescript": "^5.0.3"
   }
 }
