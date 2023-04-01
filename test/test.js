@@ -6,6 +6,7 @@ require('chai')
 
 contract('Decentragram', ([deployer, author, tipper]) => {
   let decentragram
+  const testhash = 'zckjbkhsbdhka3';
 
   before(async () => {
     decentragram = await Decentragram.deployed()
@@ -27,41 +28,35 @@ contract('Decentragram', ([deployer, author, tipper]) => {
   })
 
   describe('images', async () => {
-    let result, imageCount
-    const hash = 'QmV8cfu6n4NT5xRr2AHdKxFMTZEJrA44qgrBCr739BN9Wb'
+    let result, imageCount;
 
     before(async () => {
-      result = await decentragram.uploadImage(hash, 'Image description', { from: author })
-      imageCount = await decentragram.imageCount()
+      result = await decentragram.uploadImage(testhash, 'Image description', {from: author})
+      imageCount = await decentragram.imageCount();
     })
-
-    //check event
-    it('creates images', async () => {
-      // SUCESS
+    it('create images', async () => {
       assert.equal(imageCount, 1)
-      const event = result.logs[0].args
-      assert.equal(event.id.toNumber(), imageCount.toNumber(), 'id is correct')
-      assert.equal(event.hash, hash, 'Hash is correct')
-      assert.equal(event.description, 'Image description', 'description is correct')
-      assert.equal(event.tipAmount, '0', 'tip amount is correct')
+      const event = result.logs[0].args;
+      const {id, hash, description, tipAmount} = event;
+
+      assert.equal(id.toNumber(), imageCount.toNumber(), 'id is correct')
+      assert.equal(hash, testhash, 'hash is correct')
+      assert.equal(description, 'Image description', 'description is correct')
+      assert.equal(tipAmount, 0, 'tip amount is correct')
       assert.equal(event.author, author, 'author is correct')
 
-
-      // FAILURE: Image must have hash
-      await decentragram.uploadImage('', 'Image description', { from: author }).should.be.rejected;
-
-      // FAILURE: Image must have description
-      await decentragram.uploadImage('Image hash', '', { from: author }).should.be.rejected;
+      await decentragram.uploadImage('', 'Image desctiption', {from: author}).should.be.rejected;
+      await decentragram.uploadImage(testhash, '', {from: author}).should.be.rejected;
+      await decentragram.uploadImage(testhash, 'Image description', {from: 0x0}).should.be.rejected;
     })
 
-    //check from Struct
-    it('lists images', async () => {
-      const image = await decentragram.images(imageCount)
-      assert.equal(image.id.toNumber(), imageCount.toNumber(), 'id is correct')
-      assert.equal(image.hash, hash, 'Hash is correct')
-      assert.equal(image.description, 'Image description', 'description is correct')
-      assert.equal(image.tipAmount, '0', 'tip amount is correct')
-      assert.equal(image.author, author, 'author is correct')
+    it('list images', async () => {
+      const event = await decentragram.images(imageCount);
+      assert.equal(event.id.toNumber(), imageCount.toNumber(), 'id is correct');
+      assert.equal(event.hash, testhash, 'hash is correct');
+      assert.equal(event.description, 'Image description', 'description is correct');
+      assert.equal(event.tipAmount, 0, 'tip is correct');
+      assert.equal(event.author, author, 'author is correct');
     })
 
     it('allows users to tip images', async () => {
@@ -75,7 +70,7 @@ contract('Decentragram', ([deployer, author, tipper]) => {
       // SUCCESS
       const event = result.logs[0].args
       assert.equal(event.id.toNumber(), imageCount.toNumber(), 'id is correct')
-      assert.equal(event.hash, hash, 'Hash is correct')
+      assert.equal(event.hash, testhash, 'Hash is correct')
       assert.equal(event.description, 'Image description', 'description is correct')
       assert.equal(event.tipAmount, '1000000000000000000', 'tip amount is correct')
       assert.equal(event.author, author, 'author is correct')
